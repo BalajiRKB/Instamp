@@ -71,13 +71,40 @@ export default function ChatWindow() {
     })
   }, [messages, filters])
 
-  const displayedMessages = filteredMessages
+  // ── Pagination & Scroll ───────────────────────────────────────────────────
+  const [visibleCount, setVisibleCount] = useState(100)
+  const prevHeightRef = useRef(0)
+
+  // Reset pagination when active chat or filters change
+  useEffect(() => {
+    setVisibleCount(100)
+    prevHeightRef.current = 0
+  }, [activeId, filters])
+
+  const displayedMessages = useMemo(() => {
+    return filteredMessages.slice(Math.max(0, filteredMessages.length - visibleCount))
+  }, [filteredMessages, visibleCount])
+
+  const handleScroll = (e) => {
+    if (e.target.scrollTop === 0 && visibleCount < filteredMessages.length) {
+      // Reached top — load more messages
+      prevHeightRef.current = e.target.scrollHeight
+      setVisibleCount((prev) => Math.min(prev + 100, filteredMessages.length))
+    }
+  }
 
   useLayoutEffect(() => {
     if (feedRef.current) {
-      feedRef.current.scrollTop = feedRef.current.scrollHeight
+      if (prevHeightRef.current > 0) {
+        // Adjust scroll to maintain position after loading older messages
+        feedRef.current.scrollTop = feedRef.current.scrollHeight - prevHeightRef.current
+        prevHeightRef.current = 0
+      } else {
+        // New chat or filter change: snap to bottom
+        feedRef.current.scrollTop = feedRef.current.scrollHeight
+      }
     }
-  }, [activeId, filters])
+  }, [displayedMessages])
 
   // ── Empty state ─────────────────────────────────────────────────────────────
   if (!activeConversation) {
@@ -178,9 +205,15 @@ export default function ChatWindow() {
       {/* ── Message Feed ───────────────────────────────────────────────────── */}
       <div
         ref={feedRef}
+        onScroll={handleScroll}
         className="flex-1 overflow-y-auto px-4 py-3 flex flex-col"
         style={{ background: '#000' }}
       >
+        {visibleCount < filteredMessages.length && (
+          <div className="text-center py-2">
+            <div className="inline-block w-4 h-4 border-2 border-neutral-600 border-t-neutral-300 rounded-full animate-spin"></div>
+          </div>
+        )}
         {filteredMessages.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-neutral-600 py-10 gap-2">
             <span className="text-3xl">🔍</span>
