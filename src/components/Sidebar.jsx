@@ -83,8 +83,10 @@ export default function Sidebar() {
     return entries
   }, [conversations, searchQuery])
 
+  const mobileHidden = activeId ? 'hidden md:flex' : 'flex'
+
   return (
-    <div className="w-full sm:w-[340px] flex flex-col h-full bg-black border-r border-neutral-900 select-none flex-shrink-0">
+    <div className={`${mobileHidden} w-full md:w-[340px] flex-col h-full bg-black border-r border-neutral-900 select-none flex-shrink-0`}>
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <div className="flex justify-between items-center px-4 py-3.5 border-b border-neutral-900">
         <h1 className="text-[15px] font-bold text-white tracking-tight">Messages</h1>

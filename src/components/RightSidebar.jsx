@@ -47,7 +47,7 @@ export default function RightSidebar() {
   if (!isRightSidebarOpen || !activeConversation) return null
 
   return (
-    <div className="w-[320px] bg-[#0a0a0a] border-l border-neutral-900 flex flex-col h-full flex-shrink-0">
+    <div className="w-full md:w-[320px] bg-[#0a0a0a] border-l border-neutral-900 flex flex-col h-full flex-shrink-0">
       
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <div className="h-14 flex items-center justify-between px-4 border-b border-neutral-900 shrink-0">

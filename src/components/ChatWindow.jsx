@@ -20,6 +20,7 @@ export default function ChatWindow() {
   )
   const conversationName = activeConversation?.name ?? ''
 
+  const setActiveConversationId = useChatStore((state) => state.setActiveConversationId)
   const toggleRightSidebar = useChatStore((state) => state.toggleRightSidebar)
   const isRightSidebarOpen = useChatStore((state) => state.isRightSidebarOpen)
 
@@ -107,7 +108,7 @@ export default function ChatWindow() {
   // ── Empty state ─────────────────────────────────────────────────────────────
   if (!activeConversation) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center bg-black p-10 select-none">
+      <div className="hidden md:flex flex-1 flex-col items-center justify-center bg-black p-10 select-none">
         <div className="w-20 h-20 rounded-full border-[2px] border-neutral-700 flex items-center justify-center text-4xl mb-5">
           ✈️
         </div>
@@ -137,12 +138,24 @@ export default function ChatWindow() {
 
   const sortedDates = useMemo(() => Object.keys(groupedByDate).sort(), [groupedByDate])
 
+  const mobileHidden = isRightSidebarOpen ? 'hidden md:flex' : 'flex'
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-black">
+    <div className={`${mobileHidden} flex-1 flex-col h-full bg-black relative min-w-0`}>
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="flex flex-col border-b border-neutral-900 px-4 py-3 bg-black sticky top-0 z-10">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
+            {/* Mobile Back Button */}
+            <button 
+              onClick={() => setActiveConversationId(null)}
+              className="md:hidden flex items-center justify-center w-8 h-8 rounded-full text-white hover:bg-neutral-800 transition-colors"
+              title="Back to messages"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+            </button>
             {/* Avatar */}
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px] flex-shrink-0">
               <div className="w-full h-full rounded-full bg-neutral-900 flex items-center justify-center text-[11px] font-black text-white">
