@@ -5,6 +5,7 @@ import UploadScreen from './components/UploadScreen'
 import Sidebar from './components/Sidebar'
 import ChatWindow from './components/ChatWindow'
 import RightSidebar from './components/RightSidebar'
+import MediaLightbox from './components/MediaLightbox'
 
 export default function App() {
   const conversations           = useChatStore((state) => state.conversations)
@@ -61,6 +62,7 @@ export default function App() {
       <Sidebar />
       <ChatWindow />
       <RightSidebar />
+      <MediaLightbox />
     </div>
   ) : (
     <UploadScreen />

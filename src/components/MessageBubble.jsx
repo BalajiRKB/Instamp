@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { getMediaItem } from '../lib/storage'
+import { useChatStore } from '../store/chatStore'
 
 /**
  * Renders a single Instagram DM message bubble.
@@ -11,6 +12,7 @@ import { getMediaItem } from '../lib/storage'
  */
 export default function MessageBubble({ message, isMe, isFirst, isLast, showSenderName }) {
   const { sender, timestamp, text, mediaType, mediaUri, reactions } = message
+  const openLightbox = useChatStore((state) => state.openLightbox)
 
   // ── Lazy media loading ────────────────────────────────────────────────────
   // blobUrl is created fresh from IndexedDB each time the component mounts.
@@ -86,13 +88,17 @@ export default function MessageBubble({ message, isMe, isFirst, isLast, showSend
       case 'photo':
         if (blobUrl && !imgError) {
           return (
-            <div className={`overflow-hidden ${radius}`}>
+            <div 
+              className={`overflow-hidden ${radius} cursor-pointer group/img relative`}
+              onClick={() => openLightbox(message)}
+            >
               <img
                 src={blobUrl}
                 alt="Photo"
                 onError={() => setImgError(true)}
                 className="max-w-[260px] max-h-[320px] object-cover block"
               />
+              <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/10 transition-colors"></div>
               {text && (
                 <div className={`px-3 py-1.5 text-[13px] text-white ${isMe ? meColor : themColor}`}>
                   {text}
@@ -106,8 +112,23 @@ export default function MessageBubble({ message, isMe, isFirst, isLast, showSend
       case 'video':
         if (blobUrl) {
           return (
-            <div className={`overflow-hidden ${radius} bg-black`}>
-              <video src={blobUrl} controls className="max-w-[260px] max-h-[320px] block" />
+            <div 
+              className={`overflow-hidden ${radius} bg-black cursor-pointer group/vid relative`}
+              onClick={(e) => {
+                // If they click the video player controls, don't open lightbox.
+                // But clicking the video generally should open it.
+                // It's better to just open it for video clicks and disable pointer events on the video locally,
+                // or let them use the lightbox for better viewing.
+                e.preventDefault()
+                openLightbox(message)
+              }}
+            >
+              <video src={blobUrl} className="max-w-[260px] max-h-[320px] block pointer-events-none" />
+              <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover/vid:bg-black/40 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <span className="text-white text-lg ml-1">▶</span>
+                </div>
+              </div>
             </div>
           )
         }
@@ -126,7 +147,10 @@ export default function MessageBubble({ message, isMe, isFirst, isLast, showSend
       case 'gif':
         if (blobUrl) {
           return (
-            <div className={`overflow-hidden ${radius}`}>
+            <div 
+              className={`overflow-hidden ${radius} cursor-pointer`}
+              onClick={() => openLightbox(message)}
+            >
               <img src={blobUrl} alt="GIF" className="max-w-[260px] block" />
             </div>
           )

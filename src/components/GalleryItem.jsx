@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { getMediaItem } from '../lib/storage'
+import { useChatStore } from '../store/chatStore'
 
 export default function GalleryItem({ message }) {
   const { mediaType, mediaUri, text } = message
+  const openLightbox = useChatStore((state) => state.openLightbox)
   const [blobUrl, setBlobUrl] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(false)
@@ -39,7 +41,10 @@ export default function GalleryItem({ message }) {
 
   if (mediaType === 'photo' || mediaType === 'gif') {
     return (
-      <div className="w-full aspect-square bg-neutral-900 border border-neutral-800 relative group overflow-hidden">
+      <div 
+        className="w-full aspect-square bg-neutral-900 border border-neutral-800 relative group overflow-hidden cursor-pointer"
+        onClick={() => openLightbox(message)}
+      >
         {blobUrl && !error ? (
           <img src={blobUrl} alt="Gallery item" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
         ) : (
@@ -53,7 +58,10 @@ export default function GalleryItem({ message }) {
 
   if (mediaType === 'video') {
     return (
-      <div className="w-full aspect-square bg-neutral-900 border border-neutral-800 relative group overflow-hidden">
+      <div 
+        className="w-full aspect-square bg-neutral-900 border border-neutral-800 relative group overflow-hidden cursor-pointer"
+        onClick={() => openLightbox(message)}
+      >
         {blobUrl && !error ? (
           <>
             <video src={blobUrl} className="w-full h-full object-cover transition-transform group-hover:scale-105" />

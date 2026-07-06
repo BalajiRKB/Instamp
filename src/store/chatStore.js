@@ -4,6 +4,7 @@ export const useChatStore = create((set, get) => ({
   conversations: {},
   activeConversationId: null,
   isRightSidebarOpen: false,
+  lightboxItem: null, // { mediaUri, mediaType, sender, timestamp, text }
   searchPeopleQuery: '',
   loading: false,
   progress: 0,
@@ -61,6 +62,9 @@ export const useChatStore = create((set, get) => ({
   setProgress: (progress, progressText = '') => set({ progress, progressText }),
 
   toggleRightSidebar: () => set((state) => ({ isRightSidebarOpen: !state.isRightSidebarOpen })),
+  
+  openLightbox: (item) => set({ lightboxItem: item }),
+  closeLightbox: () => set({ lightboxItem: null }),
 
   clearSession: () => {
     set({
