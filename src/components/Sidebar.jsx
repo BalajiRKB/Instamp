@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { useChatStore } from '../store/chatStore'
 import { clearSession as clearStorage } from '../lib/storage'
+import Avatar from './Avatar'
 
 export default function Sidebar() {
   const conversations = useChatStore((state) => state.conversations)
@@ -18,15 +19,6 @@ export default function Sidebar() {
   }
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
-  const getInitials = (name) => {
-    if (!name) return 'DM'
-    const parts = name.trim().split(/[\s_]+/)
-    if (parts.length >= 2 && parts[0] && parts[1]) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
-    return name.substring(0, 2).toUpperCase()
-  }
-
   const relativeTime = (isoString) => {
     if (!isoString) return ''
     try {
@@ -127,26 +119,25 @@ export default function Sidebar() {
           </div>
         ) : (
           list.map((convo) => {
-            const active = activeId === convo.id
+            const isActive = activeId === convo.id
             const snippet = lastSnippet(convo.lastMessage)
             const time = relativeTime(convo.lastMessage?.timestamp)
 
             return (
-              <div
+              <button
                 key={convo.id}
                 onClick={() => setActiveId(convo.id)}
-                className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors duration-100
-                  ${active ? 'bg-neutral-900' : 'hover:bg-neutral-950'}`}
+                className={`w-full flex items-center px-4 py-3 cursor-pointer transition-colors border-l-2 ${
+                  isActive
+                    ? 'bg-neutral-900 border-pink-500'
+                    : 'border-transparent hover:bg-neutral-900/50'
+                }`}
               >
-                {/* Instagram-style gradient ring avatar */}
-                <div className="flex-shrink-0 w-[54px] h-[54px] rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2.5px]">
-                  <div className="w-full h-full rounded-full bg-neutral-900 flex items-center justify-center text-[14px] font-black text-white">
-                    {getInitials(convo.name)}
-                  </div>
-                </div>
+                {/* Avatar */}
+                <Avatar convoId={convo.id} name={convo.name} sizeClasses="w-[54px] h-[54px]" textClasses="text-[14px]" />
 
-                {/* Details */}
-                <div className="flex-1 min-w-0">
+                {/* Text content */}
+                <div className="ml-3 flex-1 min-w-0 text-left">
                   <div className="flex justify-between items-baseline">
                     <span className="text-[13px] font-semibold text-white truncate pr-2">
                       {convo.name}
@@ -159,7 +150,7 @@ export default function Sidebar() {
                     {snippet}
                   </p>
                 </div>
-              </div>
+              </button>
             )
           })
         )}

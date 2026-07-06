@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState, useMemo } from 're
 import { useChatStore } from '../store/chatStore'
 import MessageBubble from './MessageBubble'
 import DateSeparator from './DateSeparator'
+import Avatar from './Avatar'
 
 export default function ChatWindow() {
   const activeId = useChatStore((state) => state.activeConversationId)
@@ -157,11 +158,7 @@ export default function ChatWindow() {
               </svg>
             </button>
             {/* Avatar */}
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px] flex-shrink-0">
-              <div className="w-full h-full rounded-full bg-neutral-900 flex items-center justify-center text-[11px] font-black text-white">
-                {conversationName?.[0]?.toUpperCase() ?? 'D'}
-              </div>
-            </div>
+            <Avatar convoId={activeConversation.id} name={conversationName} sizeClasses="w-9 h-9" textClasses="text-[11px]" />
             <div>
               <h2 className="text-[13px] font-bold text-white tracking-tight leading-none mb-0.5">
                 {conversationName}

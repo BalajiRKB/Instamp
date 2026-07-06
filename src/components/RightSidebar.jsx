@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { useChatStore } from '../store/chatStore'
 import GalleryItem from './GalleryItem'
+import Avatar from './Avatar'
 
 export default function RightSidebar() {
   const activeId = useChatStore((state) => state.activeConversationId)
@@ -64,10 +65,8 @@ export default function RightSidebar() {
         
         {/* ── Contact Info ───────────────────────────────────────────────────── */}
         <div className="flex flex-col items-center mb-6 pt-2">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px] mb-3">
-            <div className="w-full h-full rounded-full bg-neutral-900 flex items-center justify-center text-3xl font-black text-white">
-              {activeConversation.name?.[0]?.toUpperCase() ?? 'D'}
-            </div>
+          <div className="mb-3">
+            <Avatar convoId={activeConversation.id} name={activeConversation.name} sizeClasses="w-20 h-20" textClasses="text-3xl" />
           </div>
           <h3 className="text-lg font-bold text-white tracking-tight">{activeConversation.name}</h3>
           <p className="text-xs text-neutral-500 font-medium mt-0.5">
