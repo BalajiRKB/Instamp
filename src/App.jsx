@@ -4,6 +4,7 @@ import { loadSession } from './lib/storage'
 import UploadScreen from './components/UploadScreen'
 import Sidebar from './components/Sidebar'
 import ChatWindow from './components/ChatWindow'
+import RightSidebar from './components/RightSidebar'
 
 export default function App() {
   const conversations           = useChatStore((state) => state.conversations)
@@ -59,6 +60,7 @@ export default function App() {
     <div className="flex h-screen w-full overflow-hidden bg-black">
       <Sidebar />
       <ChatWindow />
+      <RightSidebar />
     </div>
   ) : (
     <UploadScreen />

@@ -3,6 +3,7 @@ import { create } from 'zustand'
 export const useChatStore = create((set, get) => ({
   conversations: {},
   activeConversationId: null,
+  isRightSidebarOpen: false,
   searchPeopleQuery: '',
   loading: false,
   progress: 0,
@@ -59,10 +60,13 @@ export const useChatStore = create((set, get) => ({
   
   setProgress: (progress, progressText = '') => set({ progress, progressText }),
 
+  toggleRightSidebar: () => set((state) => ({ isRightSidebarOpen: !state.isRightSidebarOpen })),
+
   clearSession: () => {
     set({
       conversations: {},
       activeConversationId: null,
+      isRightSidebarOpen: false,
       searchPeopleQuery: '',
       loading: false,
       progress: 0,

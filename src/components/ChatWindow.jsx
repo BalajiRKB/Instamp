@@ -20,9 +20,8 @@ export default function ChatWindow() {
   )
   const conversationName = activeConversation?.name ?? ''
 
-  const filters = useChatStore((state) => state.filters)
-  const setFilters = useChatStore((state) => state.setFilters)
-  const resetFilters = useChatStore((state) => state.resetFilters)
+  const toggleRightSidebar = useChatStore((state) => state.toggleRightSidebar)
+  const isRightSidebarOpen = useChatStore((state) => state.isRightSidebarOpen)
 
   // ── "Me" detection ──────────────────────────────────────────────────────────
   // The user picks which side is "them" — default is the person with FEWER
@@ -47,6 +46,7 @@ export default function ChatWindow() {
   const feedRef = useRef(null)
 
   // ── Filtering ───────────────────────────────────────────────────────────────
+  const filters = useChatStore((state) => state.filters)
   const filteredMessages = useMemo(() => {
     if (messages.length === 0) return []
     const { search, sender, mediaType, dateFrom, dateTo } = filters
@@ -141,7 +141,7 @@ export default function ChatWindow() {
     <div className="flex-1 flex flex-col h-full bg-black">
       {/* ── Header ─────────────────────────────────────────────────────────── */}
       <header className="flex flex-col border-b border-neutral-900 px-4 py-3 bg-black sticky top-0 z-10">
-        <div className="flex justify-between items-center mb-2.5">
+        <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
             {/* Avatar */}
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-600 p-[2px] flex-shrink-0">
@@ -159,66 +159,36 @@ export default function ChatWindow() {
             </div>
           </div>
 
-          {/* "I am" selector */}
-          <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">I am</span>
-            <select
-              value={currentUser}
-              onChange={(e) => setCurrentUser(e.target.value)}
-              className="text-[11px] font-semibold text-white bg-transparent border-none focus:outline-none cursor-pointer"
-            >
-              {senders.map((s) => (
-                <option key={s} value={s} className="bg-neutral-900">
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Filter bar */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="Search messages..."
-              value={filters.search}
-              onChange={(e) => setFilters({ search: e.target.value })}
-              className="w-full text-[11px] bg-neutral-900 border border-neutral-800 px-3.5 py-2 rounded-xl focus:outline-none text-white placeholder:text-neutral-600"
-            />
-            {filters.search && (
-              <button
-                onClick={() => setFilters({ search: '' })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 text-xs font-bold"
+          <div className="flex items-center gap-2">
+            {/* "I am" selector */}
+            <div className="flex items-center gap-1.5 bg-neutral-900 border border-neutral-800 px-3 py-1.5 rounded-full">
+              <span className="text-[9px] font-bold uppercase tracking-wider text-neutral-500">I am</span>
+              <select
+                value={currentUser}
+                onChange={(e) => setCurrentUser(e.target.value)}
+                className="text-[11px] font-semibold text-white bg-transparent border-none focus:outline-none cursor-pointer"
               >
-                ✕
-              </button>
-            )}
-          </div>
+                {senders.map((s) => (
+                  <option key={s} value={s} className="bg-neutral-900">
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          <select
-            value={filters.sender}
-            onChange={(e) => setFilters({ sender: e.target.value })}
-            className="text-[11px] bg-neutral-900 border border-neutral-800 px-3 py-2 rounded-xl focus:outline-none cursor-pointer text-white"
-          >
-            <option value="" className="bg-neutral-900">All</option>
-            {senders.map((s) => (
-              <option key={s} value={s} className="bg-neutral-900">{s}</option>
-            ))}
-          </select>
-
-          <span className="text-[10px] font-semibold text-neutral-500 whitespace-nowrap">
-            {filteredMessages.length} shown
-          </span>
-
-          {(filters.search || filters.sender) && (
-            <button
-              onClick={resetFilters}
-              className="text-[10px] font-black text-pink-500 hover:text-pink-400 uppercase tracking-wider whitespace-nowrap"
+            {/* "Info" toggle button */}
+            <button 
+              onClick={toggleRightSidebar}
+              className={`w-8 h-8 flex items-center justify-center rounded-full transition-colors ${isRightSidebarOpen ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+              title="Details"
             >
-              Reset
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
             </button>
-          )}
+          </div>
         </div>
       </header>
 
