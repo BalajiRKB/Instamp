@@ -77,17 +77,17 @@ export default function RightSidebar() {
 
         {/* ── Filters ────────────────────────────────────────────────────────── */}
         <div className="mb-6 bg-neutral-900/50 rounded-2xl p-4 border border-neutral-800">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Search & Filter</h4>
-            {(filters.search || filters.sender) && (
-              <button 
-                onClick={resetFilters}
-                className="text-[10px] font-bold text-pink-500 hover:text-pink-400 uppercase tracking-wider"
-              >
-                Reset
-              </button>
-            )}
-          </div>
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">Search & Filter</h4>
+              {(filters.search || filters.sender || filters.dateFrom || filters.dateTo) && (
+                <button 
+                  onClick={resetFilters}
+                  className="text-[10px] font-bold text-pink-500 hover:text-pink-400 uppercase tracking-wider"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           
           <div className="space-y-3">
             <div className="relative">
@@ -109,9 +109,30 @@ export default function RightSidebar() {
               {senders.map((s) => (
                 <option key={s} value={s}>{s}</option>
               ))}
-            </select>
+              </select>
+
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="block text-[10px] font-semibold text-neutral-500 uppercase mb-1 ml-1">From</label>
+                  <input
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) => setFilters({ dateFrom: e.target.value })}
+                    className="w-full text-xs bg-black border border-neutral-800 px-2 py-2 rounded-xl focus:outline-none focus:border-neutral-700 text-neutral-300"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[10px] font-semibold text-neutral-500 uppercase mb-1 ml-1">To</label>
+                  <input
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) => setFilters({ dateTo: e.target.value })}
+                    className="w-full text-xs bg-black border border-neutral-800 px-2 py-2 rounded-xl focus:outline-none focus:border-neutral-700 text-neutral-300"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
         {/* ── Tabs ───────────────────────────────────────────────────────────── */}
         <div className="flex border-b border-neutral-800 mb-4">
