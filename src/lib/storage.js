@@ -1,119 +1,110 @@
 import localforage from 'localforage'
 
-// Configure localForage
 localforage.config({
   name: 'Instamp',
   storeName: 'instamp_sessions',
-  description: 'Stores parsed Instagram chat logs and media locally for session persistence'
+  description: 'Instagram chat cache — conversations and media blobs',
 })
 
 const CONVERSATIONS_KEY = 'chat_conversations'
 const ACTIVE_CONVO_KEY  = 'active_convo_id'
 const MEDIA_PREFIX      = 'media/'
 
+// ── Save ──────────────────────────────────────────────────────────────────────
 /**
- * Saves the full session to IndexedDB.
- * Conversations are stored as one JSON blob.
- * Each media file is stored separately under "media/<zipPath>".
+ * Persists conversations and media Blobs to IndexedDB.
+ *
+ * Conversations are stored as pure JSON (no Blobs embedded) so they
+ * serialise reliably across all localforage drivers and browsers.
+ * Media Blobs are stored separately under "media/<zipPath>" keys.
  */
-export async function saveSession(conversations, activeConversationId = '', mediaMap = {}) {
+export async function saveSession(conversations, activeConversationId = '', mediaFiles = {}) {
   try {
-    // Strip non-serialisable mediaBlobUrl before storing (blob URLs die on refresh anyway)
-    const sanitised = {}
+    // Strip ALL non-serialisable fields from messages before storing.
+    // Blob URLs die on refresh. Blobs embedded in complex objects can cause
+    // quota issues and may not deserialise correctly in all environments.
+    const serialisable = {}
     for (const [id, convo] of Object.entries(conversations)) {
-      sanitised[id] = {
+      serialisable[id] = {
         ...convo,
-        messages: convo.messages.map((m) => ({
-          ...m,
-          mediaBlobUrl: null, // never persist — regenerated on load
-        })),
+        messages: convo.messages.map(({ mediaBlob, mediaBlobUrl, ...rest }) => rest),
       }
     }
 
-    await localforage.setItem(CONVERSATIONS_KEY, sanitised)
+    await localforage.setItem(CONVERSATIONS_KEY, serialisable)
     if (activeConversationId) {
       await localforage.setItem(ACTIVE_CONVO_KEY, activeConversationId)
     }
 
-    // Store each media Blob keyed by its exact ZIP path
-    if (mediaMap) {
-      for (const [path, blob] of Object.entries(mediaMap)) {
-        if (blob) {
+    // Store each media Blob under its exact ZIP path as the key.
+    // Stored separately so they don't bloat the conversations JSON.
+    // Each save is wrapped individually — a quota error on one file
+    // won't prevent the others from being saved.
+    for (const [path, blob] of Object.entries(mediaFiles)) {
+      if (blob instanceof Blob) {
+        try {
           await localforage.setItem(`${MEDIA_PREFIX}${path}`, blob)
+        } catch (quotaErr) {
+          // Silently skip — the message will fall back to a placeholder
+          console.warn(`Media quota exceeded for ${path}:`, quotaErr.message)
         }
       }
     }
-  } catch (error) {
-    console.error('Failed to save session to IndexedDB:', error)
+  } catch (err) {
+    console.error('saveSession failed:', err)
   }
 }
 
-/**
- * Loads conversations + active ID from IndexedDB.
- */
+// ── Load conversations ────────────────────────────────────────────────────────
 export async function loadSession() {
   try {
-    const conversations      = await localforage.getItem(CONVERSATIONS_KEY)
+    const conversations        = await localforage.getItem(CONVERSATIONS_KEY)
     const activeConversationId = await localforage.getItem(ACTIVE_CONVO_KEY)
     return {
-      conversations: conversations || null,
+      conversations:       conversations || null,
       activeConversationId: activeConversationId || '',
     }
-  } catch (error) {
-    console.error('Failed to load session from IndexedDB:', error)
+  } catch (err) {
+    console.error('loadSession failed:', err)
     return { conversations: null, activeConversationId: '' }
   }
 }
 
+// ── Single media item lookup ───────────────────────────────────────────────────
 /**
- * Loads ALL stored media Blobs from IndexedDB and returns them as a
- * { [zipPath]: Blob } map — the same shape the worker produces.
+ * Fetches a single media Blob from IndexedDB by its ZIP path (the uri field
+ * from the JSON export). Used by MessageBubble for lazy, on-demand loading.
  *
- * This is called on page restore so we can re-create fresh blob URLs.
- */
-export async function loadAllMediaFiles() {
-  const mediaFiles = {}
-  try {
-    await localforage.iterate((value, key) => {
-      if (key.startsWith(MEDIA_PREFIX)) {
-        const zipPath = key.slice(MEDIA_PREFIX.length) // strip the "media/" prefix
-        if (value instanceof Blob) {
-          mediaFiles[zipPath] = value
-        } else if (value instanceof ArrayBuffer) {
-          // Older entries may have been stored as ArrayBuffer
-          mediaFiles[zipPath] = new Blob([value], { type: 'image/jpeg' })
-        }
-      }
-    })
-  } catch (error) {
-    console.error('Failed to load media files from IndexedDB:', error)
-  }
-  return mediaFiles
-}
-
-/**
- * Retrieves a single media Blob by its ZIP path.
+ * @param {string} zipPath - e.g. "your_instagram_activity/messages/inbox/.../photos/123"
+ * @returns {Promise<Blob|null>}
  */
 export async function getMediaItem(zipPath) {
+  if (!zipPath) return null
   try {
     const item = await localforage.getItem(`${MEDIA_PREFIX}${zipPath}`)
     if (!item) return null
     if (item instanceof Blob) return item
-    if (item instanceof ArrayBuffer) return new Blob([item], { type: 'application/octet-stream' })
+    // Fallback for environments that return ArrayBuffer
+    if (item instanceof ArrayBuffer) {
+      const ext  = zipPath.split('.').pop().toLowerCase()
+      const mime = ext === 'mp4' ? 'video/mp4'
+                 : ext === 'ogg' ? 'audio/ogg'
+                 : ext === 'mp3' ? 'audio/mpeg'
+                 : 'image/jpeg'
+      return new Blob([item], { type: mime })
+    }
     return null
-  } catch (error) {
-    console.error(`Failed to fetch media item for ${zipPath}:`, error)
+  } catch (err) {
+    console.error(`getMediaItem failed for ${zipPath}:`, err)
     return null
   }
 }
 
-/**
- * Clears all stored session data from IndexedDB.
- */
+// ── Clear ─────────────────────────────────────────────────────────────────────
 export async function clearSession() {
   try {
     await localforage.clear()
-  } catch (error) {
-    console.error('Failed to clear session from IndexedDB:', error)
+  } catch (err) {
+    console.error('clearSession failed:', err)
   }
 }

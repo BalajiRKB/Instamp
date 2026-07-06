@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { useChatStore } from '../store/chatStore'
 import { startZipExtraction } from '../lib/zipExtractor'
-import { processInstagramExport, resolveMediaBlobs } from '../lib/jsonParser'
+import { processInstagramExport } from '../lib/jsonParser'
 import { saveSession } from '../lib/storage'
 import ProgressBar from './ProgressBar'
 
@@ -52,10 +52,9 @@ export default function UploadScreen() {
           throw new Error('No valid conversations could be extracted. Check that the ZIP contains inbox/ message files.')
         }
 
-        // Resolve media Blobs into message objects using exact ZIP URI paths
-        setProgress(90, 'Resolving media attachments...')
-        const allMessages = Object.values(conversations).flatMap((c) => c.messages)
-        resolveMediaBlobs(allMessages, mediaFiles)
+        // Media Blobs are stored in IndexedDB by saveSession.
+        // MessageBubble loads them lazily via getMediaItem(mediaUri) —
+        // no pre-computation needed here.
 
         // Default to the conversation with the most recent message
         const sortedConvoIds = [...convoIds].sort((a, b) => {
