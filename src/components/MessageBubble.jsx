@@ -164,6 +164,30 @@ export default function MessageBubble({ message, isMe, isFirst, isLast, showSend
         return <span className="text-4xl">🎭</span>
 
       case 'link': {
+        const igMatch = mediaUri ? mediaUri.match(/^https?:\/\/(?:www\.)?instagram\.com\/(reel|p|tv)\/([a-zA-Z0-9_-]+)/i) : null
+
+        if (igMatch) {
+          const embedUrl = `https://www.instagram.com/p/${igMatch[2]}/embed/`
+          return (
+            <div className={`overflow-hidden max-w-[280px] bg-white ${radius}`}>
+              {text && (
+                <div className={`px-3 py-1.5 text-[13px] text-white ${isMe ? meColor : themColor}`}>
+                  {text}
+                </div>
+              )}
+              <iframe 
+                src={embedUrl}
+                width="280"
+                height="420"
+                frameBorder="0"
+                scrolling="no"
+                allowTransparency="true"
+                className="w-full block bg-white"
+              />
+            </div>
+          )
+        }
+
         const displayUrl = (() => {
           try { return new URL(mediaUri).hostname } catch { return mediaUri }
         })()
